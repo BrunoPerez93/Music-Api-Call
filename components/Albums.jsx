@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -24,8 +25,7 @@ const Albums = () => {
 
   const { theme, setTheme } = useTheme();
 
-  const apiUrl =
-    "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=Queen&api_key=4fbc1faf41a9a67fa4be36d4c8b6095f&format=json";
+  const apiUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=Queen&api_key=${process.env.API_KEY}&format=json`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,10 +71,60 @@ const Albums = () => {
     setCurrentPage(newPage);
   };
 
+  const renderPaginationItems = () => {
+    const items = [];
+    if (currentPage > 3) {
+      items.push(
+        <PaginationItem key="1">
+          <PaginationLink
+            onClick={() => handlePageChange(1)}
+            isActive={1 === currentPage}
+            className="cursor-pointer"
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      items.push(<PaginationEllipsis key="start-ellipsis" />);
+    }
+    for (
+      let i = Math.max(1, currentPage - 2);
+      i <= Math.min(totalPages, currentPage + 2);
+      i++
+    ) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => handlePageChange(i)}
+            isActive={i === currentPage}
+            className="cursor-pointer"
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    if (currentPage < totalPages - 2) {
+      items.push(<PaginationEllipsis key="end-ellipsis" />);
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            onClick={() => handlePageChange(totalPages)}
+            isActive={totalPages === currentPage}
+            className="cursor-pointer"
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    return items;
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold mb-4">Artists</h1>
+      <div className="flex justify-between items-center my-5">
+        <h1 className="md:text-5xl text-2xl font-bold">Artists</h1>
         <Button
           onClick={handleThemeToggle}
           variant="outline"
@@ -102,7 +152,7 @@ const Albums = () => {
             />
             <CardContent>
               <CardHeader className="p-4">
-                <CardTitle className="text-xl font-semibold">
+                <CardTitle className="text-xl font-semibold text-blue-950">
                   {artist.name}
                 </CardTitle>
                 <Button asChild>
@@ -122,23 +172,48 @@ const Albums = () => {
       </div>
 
       <Pagination>
-        <PaginationContent>
+        <PaginationContent className="flex justify-center">
           <PaginationPrevious
             onClick={() => handlePageChange(currentPage - 1)}
             className="disabled:opacity-50 cursor-pointer"
             disabled={currentPage === 1}
           />
-          {Array.from({ length: totalPages }, (_, i) => (
-            <PaginationItem key={i + 1}>
+          <div className="hidden md:flex">{renderPaginationItems()}</div>
+          <div className="flex md:hidden">
+            {currentPage > 1 && (
+              <PaginationItem>
+                <PaginationLink
+                  onClick={() => handlePageChange(1)}
+                  isActive={currentPage === 1}
+                  className="cursor-pointer"
+                >
+                  1
+                </PaginationLink>
+              </PaginationItem>
+            )}
+            {currentPage > 2 && <PaginationEllipsis />}
+            <PaginationItem>
               <PaginationLink
-                onClick={() => handlePageChange(i + 1)}
-                isActive={i + 1 === currentPage}
+                onClick={() => handlePageChange(currentPage)}
+                isActive={true}
                 className="cursor-pointer"
               >
-                {i + 1}
+                {currentPage}
               </PaginationLink>
             </PaginationItem>
-          ))}
+            {currentPage < totalPages - 1 && <PaginationEllipsis />}
+            {currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationLink
+                  onClick={() => handlePageChange(totalPages)}
+                  isActive={currentPage === totalPages}
+                  className="cursor-pointer"
+                >
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+          </div>
           <PaginationNext
             onClick={() => handlePageChange(currentPage + 1)}
             className="disabled:opacity-50 cursor-pointer"
