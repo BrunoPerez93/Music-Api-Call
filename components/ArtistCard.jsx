@@ -23,7 +23,7 @@ const ArtistCard = ({artist, index}) => {
               href={artist.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600"
+              className="text-blue-600 hover:bg-slate-400 dark:hover:bg-blue-700 dark:bg-gray-400"
             >
               More info
             </Link>
