@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import Link from "next/link";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import ArtistCard from "./ArtistCard";
+import ThemeToggleButton from "./ThemeToggleButton";
+import PaginationItems from "./PaginationItems";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-  PaginationEllipsis,
 } from "./ui/pagination";
 
 const Albums = () => {
@@ -23,9 +21,7 @@ const Albums = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
 
-  const { theme, setTheme } = useTheme();
-
-  const apiUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=Queen&api_key=${process.env.API_KEY}&format=json`;
+  const apiUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=Queen&api_key=${process.env.NEXT_PUBLIC_API_KEY}&format=json`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +33,7 @@ const Albums = () => {
         }
 
         const result = await response.json();
+        console.log(result);
         setData(result);
       } catch (error) {
         setError(error);
@@ -63,115 +60,22 @@ const Albums = () => {
     startIndex + itemsPerPage
   );
 
-  const handleThemeToggle = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
     setCurrentPage(newPage);
-  };
-
-  const renderPaginationItems = () => {
-    const items = [];
-    if (currentPage > 3) {
-      items.push(
-        <PaginationItem key="1">
-          <PaginationLink
-            onClick={() => handlePageChange(1)}
-            isActive={1 === currentPage}
-            className="cursor-pointer"
-          >
-            1
-          </PaginationLink>
-        </PaginationItem>
-      );
-      items.push(<PaginationEllipsis key="start-ellipsis" />);
-    }
-    for (
-      let i = Math.max(1, currentPage - 2);
-      i <= Math.min(totalPages, currentPage + 2);
-      i++
-    ) {
-      items.push(
-        <PaginationItem key={i}>
-          <PaginationLink
-            onClick={() => handlePageChange(i)}
-            isActive={i === currentPage}
-            className="cursor-pointer"
-          >
-            {i}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-    if (currentPage < totalPages - 2) {
-      items.push(<PaginationEllipsis key="end-ellipsis" />);
-      items.push(
-        <PaginationItem key={totalPages}>
-          <PaginationLink
-            onClick={() => handlePageChange(totalPages)}
-            isActive={totalPages === currentPage}
-            className="cursor-pointer"
-          >
-            {totalPages}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-    return items;
   };
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center my-5">
         <h1 className="md:text-5xl text-2xl font-bold">Artists</h1>
-        <Button
-          onClick={handleThemeToggle}
-          variant="outline"
-          size="icon"
-          className="relative"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-[1.5rem] w-[1.5rem] transition-transform duration-300" />
-          ) : (
-            <Moon className="h-[1.5rem] w-[1.5rem] transition-transform duration-300" />
-          )}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+        <ThemeToggleButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {currentItems.map((artist, index) => (
-          <Card
-            key={`${artist.mbid}-${index}`}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
-          >
-            <img
-              src={artist.image[3]["#text"]}
-              alt={artist.name}
-              className="w-full h-48 object-cover"
-            />
-            <CardContent>
-              <CardHeader className="p-4">
-                <CardTitle className="text-xl font-semibold text-blue-950">
-                  {artist.name}
-                </CardTitle>
-                <Button asChild>
-                  <Link
-                    href={artist.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600"
-                  >
-                    More info
-                  </Link>
-                </Button>
-              </CardHeader>
-            </CardContent>
-          </Card>
+          <ArtistCard artist={artist} index={index} key={index} />
         ))}
       </div>
-
       <Pagination>
         <PaginationContent className="flex justify-center">
           <PaginationPrevious
@@ -179,7 +83,13 @@ const Albums = () => {
             className="disabled:opacity-50 cursor-pointer"
             disabled={currentPage === 1}
           />
-          <div className="hidden md:flex">{renderPaginationItems()}</div>
+          <div className="hidden md:flex">
+            <PaginationItems
+              currentPage={currentPage}
+              totalPages={totalPages}
+              handlePageChange={handlePageChange}
+            />
+          </div>
           <div className="flex md:hidden">
             {currentPage > 1 && (
               <PaginationItem>
