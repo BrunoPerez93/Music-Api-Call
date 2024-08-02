@@ -9,11 +9,11 @@ import { useTheme } from "next-themes";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationEllipsis,
 } from "./ui/pagination";
 
 const Albums = () => {
@@ -40,6 +40,7 @@ const Albums = () => {
         setData(result);
       } catch (error) {
         setError(error);
+        console.error("Fetching data failed:", error);
       } finally {
         setLoading(false);
       }
